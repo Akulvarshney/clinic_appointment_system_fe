@@ -40,7 +40,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/v1/auth/login",
+        "http://localhost:3000/api/v1/noAuth/auth/login",
         {
           loginId: LoginId,
           password,
@@ -64,47 +64,10 @@ const LoginPage = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        // minHeight: "100vh",
         background: "linear-gradient(135deg, #dbeafe, #f0f9ff)",
       }}
     >
-      {/* Navbar */}
-      <AppBar
-        position="static"
-        elevation={0}
-        sx={{
-          background: "transparent",
-          boxShadow: "none",
-          py: 1,
-        }}
-      >
-        <Toolbar sx={{ justifyContent: "space-between", px: { xs: 2, sm: 5 } }}>
-          <Typography
-            variant="h6"
-            sx={{ color: "#1e3a8a", fontWeight: "bold" }}
-          >
-            Sitemark
-          </Typography>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate("/")}
-            sx={{
-              color: "#1e3a8a",
-              border: "1px solid #1e3a8a",
-              borderRadius: "10px",
-              textTransform: "none",
-              fontWeight: "bold",
-              "&:hover": {
-                backgroundColor: "#eff6ff",
-              },
-            }}
-          >
-            Back to Home
-          </Button>
-        </Toolbar>
-      </AppBar>
-
-      {/* Login Form */}
       <Box
         sx={{
           minHeight: "calc(100vh - 64px)",

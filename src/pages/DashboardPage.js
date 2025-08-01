@@ -31,8 +31,6 @@ const DashboardPage = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-blue-100 to-blue-50 font-sans text-gray-800">
-      <Sidebar />
-
       <main className="flex-1 px-6 md:px-12 py-10 animate-fadeIn">
         <header className="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
           <h2 className="text-4xl font-extrabold text-gray-900 tracking-wide">

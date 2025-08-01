@@ -143,21 +143,6 @@ const HomePage = () => {
         overflow: "hidden",
       }}
     >
-      <AppBar position="static" sx={{ backgroundColor: "#1565c0" }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            ClinicEase Portal
-          </Typography>
-          <Button
-            color="inherit"
-            startIcon={<LoginIcon />}
-            onClick={() => (window.location.href = "/login")}
-          >
-            Login
-          </Button>
-        </Toolbar>
-      </AppBar>
-
       <Grid
         container
         direction="column"
