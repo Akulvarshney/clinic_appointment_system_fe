@@ -47,10 +47,12 @@ const LoginPage = () => {
         }
       );
       console.log("Login success:", response.data);
+      navigate("/dashboard");
       // redirect or show success message
     } catch (error) {
+      console.log(error);
       if (error.response?.status === 401) {
-        setErrorMsg("Invalid LoginId or password.");
+        setErrorMsg(error.response.data.message);
       } else {
         setErrorMsg("An error occurred. Please try again.");
       }

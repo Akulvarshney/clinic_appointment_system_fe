@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import {
   Box,
   Button,
@@ -13,7 +14,9 @@ import {
   IconButton,
   Paper,
   Fade,
+  Alert,
 } from "@mui/material";
+
 import LoginIcon from "@mui/icons-material/Login";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
@@ -21,6 +24,18 @@ import SearchIcon from "@mui/icons-material/Search";
 const HomePage = () => {
   const [openNewForm, setOpenNewForm] = useState(false);
   const [openTrackForm, setOpenTrackForm] = useState(false);
+
+  const [OrgName, setOrgName] = useState(false);
+  const [yourFullName, setyourFullName] = useState(false);
+  const [OrgShortName, setOrgShortName] = useState(false);
+  const [OrgPhone, setOrgPhone] = useState(false);
+  const [orgEmail, setorgEmail] = useState(false);
+  const [orgAddress, setorgAddress] = useState(false);
+  const [errorMsgNewApplication, seterrorMsgNewApplication] = useState(false);
+
+  const [trackingMobile, setTrackingMobile] = useState(false);
+  const [trackingId, setTrackingId] = useState(false);
+  const [errorTrackApplication, seterrorTrackApplication] = useState("");
 
   const modalStyle = {
     position: "absolute",
@@ -32,6 +47,92 @@ const HomePage = () => {
     borderRadius: 3,
     boxShadow: 24,
     p: 4,
+  };
+
+  const submitNewApplicationRequest = async () => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/noAuth/newApplication/submitApplication`,
+        {
+          org_name: OrgName,
+          phone: OrgPhone,
+          org_short_name: OrgShortName,
+          client_name: yourFullName,
+          email: orgEmail,
+        }
+      );
+      console.log("response ", response.data); // "1" if the organization name is also corrrect
+    } catch (error) {
+      if (error.response?.status === 401) {
+        seterrorMsgNewApplication(error.response.data.message);
+        // seterrorMsgNewApplication("Invalid LoginId or password.");
+      } else {
+        seterrorMsgNewApplication("An error occurred. Please try again.");
+      }
+    }
+  };
+  const handleNewApplication = async () => {
+    seterrorMsgNewApplication("");
+    if (
+      !OrgName ||
+      !OrgShortName ||
+      !OrgPhone ||
+      !orgAddress ||
+      !orgEmail ||
+      !yourFullName
+    ) {
+      seterrorMsgNewApplication("Please Enter all the details");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(orgEmail)) {
+      seterrorMsgNewApplication("Please enter a valid email address.");
+      return;
+    }
+    const mobileRegex = /^[0-9]{10}$/;
+    if (!mobileRegex.test(OrgPhone)) {
+      seterrorMsgNewApplication(
+        "Please enter a Mobile Number ( Exactly 10 digits)"
+      );
+    }
+    //setLoading(true);
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/v1/noAuth/newApplication/checkShortName?shortName=${OrgShortName}`
+      );
+      console.log("response ", response.data); // "1" if the organization name is also corrrect
+      submitNewApplicationRequest();
+    } catch (error) {
+      if (error.response?.status === 401) {
+        seterrorMsgNewApplication(error.response.data.message);
+        // seterrorMsgNewApplication("Invalid LoginId or password.");
+      } else {
+        seterrorMsgNewApplication("An error occurred. Please try again.");
+      }
+    }
+
+    // setLoading(false);
+  };
+
+  const trackApplicationStatus = async () => {
+    seterrorTrackApplication("");
+    if (!trackingId || !trackingMobile) {
+      seterrorTrackApplication("Enter Mobile Number and TrackingId");
+    }
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/v1/noAuth/newApplication/trackApplication?mobileNumber=${trackingMobile}&trackingId=${trackingId}`
+      );
+      console.log("response ", response.data); // "1" if the organization name is also corrrect
+    } catch (error) {
+      if (error.response?.status === 401) {
+        seterrorTrackApplication(error.response.data.message);
+        // seterrorMsgNewApplication("Invalid LoginId or password.");
+      } else {
+        seterrorTrackApplication("An error occurred. Please try again.");
+      }
+    }
   };
 
   return (
@@ -146,18 +247,28 @@ const HomePage = () => {
 
           <Stack spacing={2} mt={2}>
             <TextField
-              label="Full Name"
+              label="Organization Name"
               fullWidth
               size="medium"
               variant="outlined"
               sx={{ borderRadius: 2 }}
+              onChange={(e) => setOrgName(e.target.value)}
             />
             <TextField
-              label="Short Name"
+              label="Your Full Name"
               fullWidth
               size="medium"
               variant="outlined"
               sx={{ borderRadius: 2 }}
+              onChange={(e) => setyourFullName(e.target.value)}
+            />
+            <TextField
+              label="Organization Short Name"
+              fullWidth
+              size="medium"
+              variant="outlined"
+              sx={{ borderRadius: 2 }}
+              onChange={(e) => setOrgShortName(e.target.value)}
             />
             <TextField
               label="Mobile"
@@ -165,6 +276,7 @@ const HomePage = () => {
               size="medium"
               variant="outlined"
               sx={{ borderRadius: 2 }}
+              onChange={(e) => setOrgPhone(e.target.value)}
             />
             <TextField
               label="Email"
@@ -172,6 +284,7 @@ const HomePage = () => {
               size="medium"
               variant="outlined"
               sx={{ borderRadius: 2 }}
+              onChange={(e) => setorgEmail(e.target.value)}
             />
             <TextField
               label="Address"
@@ -180,12 +293,18 @@ const HomePage = () => {
               multiline
               rows={2}
               variant="outlined"
+              onChange={(e) => setorgAddress(e.target.value)}
               sx={{ borderRadius: 2 }}
             />
-
+            {errorMsgNewApplication && (
+              <Alert severity="error" sx={{ fontSize: "0.85rem" }}>
+                {errorMsgNewApplication}
+              </Alert>
+            )}
             <Button
               variant="contained"
               fullWidth
+              onClick={handleNewApplication}
               sx={{
                 borderRadius: 3,
                 py: 1.2,
@@ -229,6 +348,7 @@ const HomePage = () => {
               fullWidth
               size="small"
               variant="outlined"
+              onChange={(e) => setTrackingMobile(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <span style={{ paddingRight: 8, color: "#888" }}>📱</span>
@@ -240,17 +360,25 @@ const HomePage = () => {
               fullWidth
               size="small"
               variant="outlined"
+              onChange={(e) => setTrackingId(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <span style={{ paddingRight: 8, color: "#888" }}>🔍</span>
                 ),
               }}
             />
+
+            {errorTrackApplication && (
+              <Alert severity="error" sx={{ fontSize: "0.85rem" }}>
+                {errorTrackApplication}
+              </Alert>
+            )}
             <Button
               variant="contained"
               color="success"
               fullWidth
               sx={{ borderRadius: 3, py: 1 }}
+              onClick={trackApplicationStatus}
             >
               Track Now
             </Button>
