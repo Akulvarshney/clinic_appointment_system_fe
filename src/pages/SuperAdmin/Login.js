@@ -1,47 +1,31 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {
-  Paper,
-  Stack,
-  TextField,
-  Alert,
-  Button,
-  Box,
-  Typography,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
+import { Form, Input, Button, Alert, Card, Typography } from "antd";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "../../assets/constants";
 import { useAuth } from "../../layouts/AuthContext";
 
+const { Title, Text } = Typography;
+
 const Login = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-
   const { login } = useAuth();
+  const [form] = Form.useForm();
 
-  const [loginId, setLoginId] = useState("");
-  const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogin = async (values) => {
     setErrorMsg("");
-    if (!loginId || !password) {
-      setErrorMsg("LoginId and password are required.");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const response = await axios.post(
         `${BACKEND_URL}/noAuth/auth/superadmin/login`,
         {
-          login_id: loginId,
-          password,
+          login_id: values.loginId,
+          password: values.password,
         }
       );
 
@@ -71,115 +55,124 @@ const Login = () => {
     setLoading(false);
   };
 
-  return (
-    <Box>
-      <Box
-        sx={{
-          minHeight: "calc(100vh - 64px)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          px: 2,
-          pb: 10,
-        }}
-      >
-        <Paper
-          elevation={6}
-          sx={{
-            width: isMobile ? "100%" : 400,
-            p: 4,
-            borderRadius: "18px",
-            backgroundColor: "#ffffff",
-            boxShadow: "0 12px 28px rgba(59, 130, 246, 0.12)",
-          }}
-        >
-          <Stack spacing={3}>
-            <Box textAlign="center">
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                sx={{ color: "#1e3a8a", fontSize: "1.7rem" }}
-              >
-                Sign in
-              </Typography>
-              <Typography variant="body2" sx={{ color: "#475569" }}>
-                SuperAdmin Login Page
-              </Typography>
-            </Box>
+  const handleForgotPassword = () => {
+    // Add forgot password logic here
+    console.log("Forgot password clicked");
+  };
 
+  const handleClientLogin = () => {
+    navigate("/login");
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-wrapper">
+        <Card className="login-card">
+          <div className="login-content">
+            {/* Header */}
+            <div className="login-header">
+              <Title level={3} className="login-title">
+                Sign in
+              </Title>
+              <Text className="login-subtitle">SuperAdmin Login Page</Text>
+            </div>
+
+            {/* Error Alert */}
             {errorMsg && (
-              <Alert severity="error" className="error-alert">
-                {errorMsg}
-              </Alert>
+              <Alert
+                message={errorMsg}
+                type="error"
+                showIcon
+                className="error-alert"
+              />
             )}
 
-            <TextField
-              fullWidth
-              label="Login Id"
-              value={loginId}
-              onChange={(e) => setLoginId(e.target.value)}
-              size="small"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
-                  fontSize: "0.9rem",
-                  height: 42,
-                },
+            {/* Login Form */}
+            <Form
+              form={form}
+              name="login"
+              onFinish={handleLogin}
+              autoComplete="off"
+              layout="vertical"
+              className="login-form"
+              initialValues={{
+                loginId: "admin", // Default login ID
+                password: "admin123", // Default password
               }}
-            />
-
-            <TextField
-              fullWidth
-              type="password"
-              label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              size="small"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
-                  fontSize: "0.9rem",
-                  height: 42,
-                },
-              }}
-            />
-
-            <Button
-              variant="contained"
-              fullWidth
-              disabled={loading}
-              onClick={handleLogin}
-              sx={{
-                background: "linear-gradient(to right, #3b82f6, #2563eb)",
-                fontWeight: "600",
-                fontSize: "0.9rem",
-                borderRadius: "10px",
-                py: 1.1,
-                textTransform: "none",
-              }}
-              className="button-gradient-hover"
             >
-              {loading ? "Signing in..." : "Sign in"}
-            </Button>
+              <Form.Item
+                name="loginId"
+                label="Login ID"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your login ID!",
+                  },
+                ]}
+                className="form-item"
+              >
+                <Input
+                  prefix={<UserOutlined className="input-prefix" />}
+                  placeholder="Enter your login ID"
+                  size="large"
+                  className="form-input"
+                />
+              </Form.Item>
 
-            <Box textAlign="center" className="flex flex-col">
-              <Button variant="text" size="small" className="small-text-button">
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your password!",
+                  },
+                ]}
+                className="form-item"
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="input-prefix" />}
+                  placeholder="Enter your password"
+                  size="large"
+                  className="form-input"
+                />
+              </Form.Item>
+
+              <Form.Item className="form-item">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={loading}
+                  block
+                  size="large"
+                  className="login-button"
+                >
+                  {loading ? "Signing in..." : "Sign in"}
+                </Button>
+              </Form.Item>
+            </Form>
+
+            {/* Action Buttons */}
+            <div className="login-actions">
+              <Button
+                type="link"
+                onClick={handleForgotPassword}
+                className="action-button"
+              >
                 Forgot your password?
               </Button>
-
               <Button
-                onClick={() => navigate("/login")}
-                variant="text"
-                size="small"
-                className="small-text-button"
+                type="link"
+                onClick={handleClientLogin}
+                className="action-button"
               >
                 Login as Client
               </Button>
-            </Box>
-          </Stack>
-        </Paper>
-      </Box>
-    </Box>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
   );
 };
 

@@ -1,12 +1,18 @@
 import { Tabs, Table, Spin } from "antd";
 import { useEffect, useState } from "react";
-import { organizationlisting } from "../../services/organisationListingService";
+import {
+  handleActionOnApplication,
+  organizationlisting,
+} from "../../services/organisationListingService";
+import { Dropdown, Menu, Button, message } from "antd";
+import { DownOutlined } from "@ant-design/icons";
 
 const { TabPane } = Tabs;
 
 const OrganisationListing = () => {
   const [status, setStatus] = useState("PENDING");
   const [listing, setListing] = useState([]);
+  const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
 
   const fetchOrganizations = async () => {
@@ -26,6 +32,12 @@ const OrganisationListing = () => {
   }, [status]);
 
   const columns = [
+    {
+      title: "ID",
+      dataIndex: "trackingid",
+      key: "id",
+      render: (text) => <span style={{ fontWeight: "bold" }}>{text}</span>,
+    },
     {
       title: "Organization Name",
       dataIndex: "organization_name",
@@ -56,6 +68,40 @@ const OrganisationListing = () => {
       dataIndex: "created_at",
       key: "created_at",
       render: (text) => new Date(text).toLocaleDateString(),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => {
+        const handleMenuClick = async (e) => {
+          const action = e.key;
+          try {
+            console.log(`Updating status for ${record.id} to ${action}`);
+            await handleActionOnApplication(record.id, action, remark);
+            message.success(
+              `${record.organization_name} ${action.toLowerCase()} successfully`
+            );
+            fetchOrganizations();
+          } catch (error) {
+            message.error("Failed to update status");
+          }
+        };
+
+        const menu = (
+          <Menu onClick={handleMenuClick}>
+            <Menu.Item key="APPROVED">Accept</Menu.Item>
+            <Menu.Item key="REJECTED">Reject</Menu.Item>
+          </Menu>
+        );
+
+        return (
+          <Dropdown overlay={menu}>
+            <Button>
+              Action <DownOutlined />
+            </Button>
+          </Dropdown>
+        );
+      },
     },
   ];
 

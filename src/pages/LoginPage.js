@@ -13,11 +13,14 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "../assets/constants";
+import { useAuth } from "../layouts/AuthContext";
 
 const LoginPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+
+  const { login } = useAuth(); // Assuming you have a useAuth hook for context
 
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
@@ -35,9 +38,30 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/noAuth/auth/login`, {
-        loginId: loginId,
+        loginId,
         password,
       });
+
+      const { token, user, organizations } = response.data.data;
+      console.log("response data:", response.data.data);
+
+      console.log("asd", token, user, organizations);
+
+      // Save to localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("organizations", JSON.stringify(organizations));
+      localStorage.setItem(
+        "selectedOrgId",
+        organizations?.[0]?.organizationId || null
+      );
+
+      // Extract role for login context:
+      const finalRole = user?.role || organizations?.[0]?.roles?.[0] || null;
+
+      // Call context login
+      login(user, token, organizations, finalRole);
+
       console.log("Login success:", response.data);
       navigate("/dashboard");
     } catch (error) {
@@ -51,7 +75,6 @@ const LoginPage = () => {
 
     setLoading(false);
   };
-
   return (
     <Box>
       <Box

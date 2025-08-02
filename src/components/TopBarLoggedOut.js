@@ -14,7 +14,11 @@ const TopBarLoggedOut = () => {
       }}
     >
       <div>Arogi</div>
-      <button onClick={() => navigate("/login")}>Login</button>
+      <div className="flex gap-4">
+        <button onClick={() => navigate("/")}>Home</button>
+
+        <button onClick={() => navigate("/login")}>Login</button>
+      </div>
     </div>
   );
 };

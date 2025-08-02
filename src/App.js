@@ -18,6 +18,7 @@ import DashboardSAPage from "./pages/SuperAdmin/DashboardSApage";
 import OrganisationListing from "./pages/SuperAdmin/OrganisationListing";
 
 import "../src/App.css";
+import { message } from "antd";
 
 function App() {
   // const [isLoggedIn, setIsLoggedIn] = useState(false);

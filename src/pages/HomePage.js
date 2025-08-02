@@ -144,7 +144,6 @@ const HomePage = () => {
         overflow: "hidden",
       }}
     >
-      <Button onClick={openNotification}>Show Notification</Button>;
       <Grid
         container
         direction="column"
