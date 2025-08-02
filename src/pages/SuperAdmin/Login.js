@@ -12,12 +12,15 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { BACKEND_URL } from "../assets/constants";
+import { BACKEND_URL } from "../../assets/constants";
+import { useAuth } from "../../layouts/AuthContext";
 
-const LoginPage = () => {
+const Login = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+
+  const { login } = useAuth();
 
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
@@ -34,12 +37,28 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/noAuth/auth/login`, {
-        loginId: loginId,
-        password,
-      });
+      const response = await axios.post(
+        `${BACKEND_URL}/noAuth/auth/superadmin/login`,
+        {
+          login_id: loginId,
+          password,
+        }
+      );
+
       console.log("Login success:", response.data);
-      navigate("/dashboard");
+
+      const { token, user } = response.data;
+
+      login(user, token);
+      // Save user & token
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role === "SUPERADMIN") {
+        navigate("/superadmin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.log(error);
       if (error.response?.status === 401) {
@@ -84,7 +103,7 @@ const LoginPage = () => {
                 Sign in
               </Typography>
               <Typography variant="body2" sx={{ color: "#475569" }}>
-                Enter your credentials to continue
+                SuperAdmin Login Page
               </Typography>
             </Box>
 
@@ -147,13 +166,14 @@ const LoginPage = () => {
               <Button variant="text" size="small" className="small-text-button">
                 Forgot your password?
               </Button>
+
               <Button
-                onClick={() => navigate("/superAdmin/login")}
+                onClick={() => navigate("/login")}
                 variant="text"
                 size="small"
                 className="small-text-button"
               >
-                Login as Super Admin
+                Login as Client
               </Button>
             </Box>
           </Stack>
@@ -163,4 +183,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;

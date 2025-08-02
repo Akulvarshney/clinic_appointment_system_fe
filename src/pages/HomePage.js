@@ -21,6 +21,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import { BACKEND_URL } from "../assets/constants";
+import { message, notification } from "antd";
 
 const HomePage = () => {
   const [openNewForm, setOpenNewForm] = useState(false);
@@ -60,60 +61,52 @@ const HomePage = () => {
           org_short_name: OrgShortName,
           client_name: yourFullName,
           email: orgEmail,
+          address: orgAddress,
         }
       );
+
       console.log("response ", response.data);
-    } catch (error) {
-      if (error.response?.status === 401) {
-        seterrorMsgNewApplication(error.response.data.message);
-        // seterrorMsgNewApplication("Invalid LoginId or password.");
-      } else {
-        seterrorMsgNewApplication("An error occurred. Please try again.");
-      }
-    }
-  };
-  const handleNewApplication = async () => {
-    seterrorMsgNewApplication("");
-    if (
-      !OrgName ||
-      !OrgShortName ||
-      !OrgPhone ||
-      !orgAddress ||
-      !orgEmail ||
-      !yourFullName
-    ) {
-      seterrorMsgNewApplication("Please Enter all the details");
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(orgEmail)) {
-      seterrorMsgNewApplication("Please enter a valid email address.");
-      return;
-    }
-    const mobileRegex = /^[0-9]{10}$/;
-    if (!mobileRegex.test(OrgPhone)) {
-      seterrorMsgNewApplication(
-        "Please enter a Mobile Number ( Exactly 10 digits)"
-      );
-    }
-    //setLoading(true);
 
-    try {
-      const response = await axios.get(
-        `${BACKEND_URL}/noAuth/newApplication/checkShortName?shortName=${OrgShortName}`
-      );
-      console.log("response ", response.data); // "1" if the organization name is also corrrect
-      submitNewApplicationRequest();
-    } catch (error) {
-      if (error.response?.status === 401) {
-        seterrorMsgNewApplication(error.response.data.message);
-        // seterrorMsgNewApplication("Invalid LoginId or password.");
-      } else {
-        seterrorMsgNewApplication("An error occurred. Please try again.");
+      if (!response.data.success) {
+        notification.error({
+          message: "Error",
+          description: response.data.message || "Failed to submit application.",
+        });
+        seterrorMsgNewApplication(
+          response.data.message || "Failed to submit application."
+        );
+        return;
       }
-    }
 
-    // setLoading(false);
+      // ✅ Show success notification
+      notification.success({
+        message: "Success",
+        description: response.data.message || "Application submitted.",
+      });
+
+      // ✅ Reset form
+      setOrgName("");
+      setOrgShortName("");
+      setOrgPhone("");
+      setyourFullName("");
+      setorgEmail("");
+      setorgAddress("");
+      seterrorMsgNewApplication("");
+
+      // ✅ Close modal
+      setOpenNewForm(false);
+    } catch (error) {
+      const msg =
+        error.response?.data?.message || "An unexpected error occurred.";
+      const status = error.response?.status;
+
+      notification.error({
+        message: `Error${status ? ` (${status})` : ""}`,
+        description: msg,
+      });
+
+      seterrorMsgNewApplication(msg);
+    }
   };
 
   const trackApplicationStatus = async () => {
@@ -136,6 +129,14 @@ const HomePage = () => {
     }
   };
 
+  const openNotification = () => {
+    console.log("asdads");
+    notification.success({
+      message: "Test Success",
+      description: "This is a test notification",
+    });
+  };
+
   return (
     <Box
       sx={{
@@ -143,6 +144,7 @@ const HomePage = () => {
         overflow: "hidden",
       }}
     >
+      <Button onClick={openNotification}>Show Notification</Button>;
       <Grid
         container
         direction="column"
@@ -207,7 +209,6 @@ const HomePage = () => {
           </Box>
         </Fade>
       </Grid>
-
       {/* Modal for New Form */}
       <Modal open={openNewForm} onClose={() => setOpenNewForm(false)}>
         <Box
@@ -289,7 +290,7 @@ const HomePage = () => {
             <Button
               variant="contained"
               fullWidth
-              onClick={handleNewApplication}
+              onClick={submitNewApplicationRequest}
               sx={{
                 borderRadius: 3,
                 py: 1.2,
@@ -307,7 +308,6 @@ const HomePage = () => {
           </Stack>
         </Box>
       </Modal>
-
       {/* Modal for Track Application */}
       <Modal open={openTrackForm} onClose={() => setOpenTrackForm(false)}>
         <Box

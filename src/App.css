@@ -7,6 +7,10 @@ body {
   box-sizing: border-box;
 }
 
+.pageCss {
+  padding: 2rem;
+}
+
 /* Button hover transition (optional) */
 .button-gradient-hover:hover {
   background: linear-gradient(to right, #2563eb, #1e40af) !important;
