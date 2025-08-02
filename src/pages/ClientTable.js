@@ -55,8 +55,6 @@ const ClientInfoTable = () => {
         background: "linear-gradient(to right, #e6f0ff, #f8fbff)",
       }}
     >
-      <Sidebar />
-
       <div className="flex-1 p-10 bg-transparent">
         {/* Heading */}
         <div className="mb-8 border-b-2 border-blue-200 pb-4 flex items-center justify-between">

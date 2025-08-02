@@ -13,7 +13,7 @@ import LoggedOutLayout from "./layouts/LoggedOutLayout";
 import LoggedInLayout from "./layouts/LoggedInLayout";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   return (
     <Routes>

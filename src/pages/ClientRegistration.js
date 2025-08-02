@@ -66,8 +66,6 @@ const ClientRegistration = () => {
         background: "linear-gradient(to right, #e6f0ff, #f8fbff)",
       }}
     >
-      <Sidebar />
-
       <Box sx={{ flexGrow: 1, p: 4, maxWidth: "calc(100% - 260px)" }}>
         <Typography
           variant="h4"

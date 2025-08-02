@@ -51,7 +51,6 @@ const RoleManagement = () => {
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", background: "#f4f9ff" }}>
-      <Sidebar />
       <div className="flex-1 p-6 sm:p-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-6">
           Role Management
