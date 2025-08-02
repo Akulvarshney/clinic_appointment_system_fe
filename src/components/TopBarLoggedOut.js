@@ -13,7 +13,7 @@ const TopBarLoggedOut = () => {
         justifyContent: "space-between",
       }}
     >
-      <div>Public Topbar</div>
+      <div>Arogi</div>
       <button onClick={() => navigate("/login")}>Login</button>
     </div>
   );

@@ -1,37 +1,32 @@
 import React, { useState } from "react";
 import axios from "axios";
-
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-  Container,
   Paper,
   Stack,
   TextField,
   Alert,
-  IconButton,
+  Button,
+  Box,
+  Typography,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
+import { BACKEND_URL } from "../assets/constants";
 
 const LoginPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
 
-  const [LoginId, setLoginId] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setErrorMsg("");
-    if (!LoginId || !password) {
+    if (!loginId || !password) {
       setErrorMsg("LoginId and password are required.");
       return;
     }
@@ -39,16 +34,12 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/v1/noAuth/auth/login",
-        {
-          loginId: LoginId,
-          password,
-        }
-      );
+      const response = await axios.post(`${BACKEND_URL}/noAuth/auth/login`, {
+        loginId: loginId,
+        password,
+      });
       console.log("Login success:", response.data);
       navigate("/dashboard");
-      // redirect or show success message
     } catch (error) {
       console.log(error);
       if (error.response?.status === 401) {
@@ -62,12 +53,7 @@ const LoginPage = () => {
   };
 
   return (
-    <Box
-      sx={{
-        // minHeight: "100vh",
-        background: "linear-gradient(135deg, #dbeafe, #f0f9ff)",
-      }}
-    >
+    <Box>
       <Box
         sx={{
           minHeight: "calc(100vh - 64px)",
@@ -103,7 +89,7 @@ const LoginPage = () => {
             </Box>
 
             {errorMsg && (
-              <Alert severity="error" sx={{ fontSize: "0.85rem" }}>
+              <Alert severity="error" className="error-alert">
                 {errorMsg}
               </Alert>
             )}
@@ -111,7 +97,7 @@ const LoginPage = () => {
             <TextField
               fullWidth
               label="Login Id"
-              value={LoginId}
+              value={loginId}
               onChange={(e) => setLoginId(e.target.value)}
               size="small"
               sx={{
@@ -151,24 +137,14 @@ const LoginPage = () => {
                 borderRadius: "10px",
                 py: 1.1,
                 textTransform: "none",
-                "&:hover": {
-                  background: "linear-gradient(to right, #2563eb, #1e40af)",
-                },
               }}
+              className="button-gradient-hover"
             >
               {loading ? "Signing in..." : "Sign in"}
             </Button>
 
             <Box textAlign="center">
-              <Button
-                variant="text"
-                size="small"
-                sx={{
-                  color: "#3b82f6",
-                  fontSize: "0.8rem",
-                  textTransform: "none",
-                }}
-              >
+              <Button variant="text" size="small" className="small-text-button">
                 Forgot your password?
               </Button>
             </Box>

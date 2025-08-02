@@ -20,6 +20,7 @@ import {
 import LoginIcon from "@mui/icons-material/Login";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
+import { BACKEND_URL } from "../assets/constants";
 
 const HomePage = () => {
   const [openNewForm, setOpenNewForm] = useState(false);
@@ -52,7 +53,7 @@ const HomePage = () => {
   const submitNewApplicationRequest = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:3000/api/v1/noAuth/newApplication/submitApplication`,
+        `${BACKEND_URL}/noAuth/newApplication/submitApplication`,
         {
           org_name: OrgName,
           phone: OrgPhone,
@@ -61,7 +62,7 @@ const HomePage = () => {
           email: orgEmail,
         }
       );
-      console.log("response ", response.data); // "1" if the organization name is also corrrect
+      console.log("response ", response.data);
     } catch (error) {
       if (error.response?.status === 401) {
         seterrorMsgNewApplication(error.response.data.message);
@@ -99,7 +100,7 @@ const HomePage = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/v1/noAuth/newApplication/checkShortName?shortName=${OrgShortName}`
+        `${BACKEND_URL}/noAuth/newApplication/checkShortName?shortName=${OrgShortName}`
       );
       console.log("response ", response.data); // "1" if the organization name is also corrrect
       submitNewApplicationRequest();
@@ -122,7 +123,7 @@ const HomePage = () => {
     }
     try {
       const response = await axios.get(
-        `http://localhost:3000/api/v1/noAuth/newApplication/trackApplication?mobileNumber=${trackingMobile}&trackingId=${trackingId}`
+        `${BACKEND_URL}/noAuth/newApplication/trackApplication?mobileNumber=${trackingMobile}&trackingId=${trackingId}`
       );
       console.log("response ", response.data); // "1" if the organization name is also corrrect
     } catch (error) {
@@ -138,7 +139,6 @@ const HomePage = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
         background: "linear-gradient(to right top, #c6f1ff, #d3d2ff)",
         overflow: "hidden",
       }}
