@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { FaChartBar, FaUser } from "react-icons/fa";
 import { useAuth } from "../layouts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [tabs, setTabs] = useState([]);
@@ -43,7 +45,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-full md:w-64 bg-white p-6 shadow-2xl border-r border-gray-200 animate-fadeInUp">
+    <aside className="w-full md:w-64 bg-white p-6 shadow-2xl border-r border-gray-200 animate-fadeInUp overflow-auto">
       <h2 className="text-3xl font-extrabold text-blue-600 mb-10 tracking-widest uppercase">
         Arogi
       </h2>
@@ -69,6 +71,7 @@ const Sidebar = () => {
         {tabs.map((tab) => (
           <li
             key={tab.tab_id}
+            onClick={() => navigate(`${tab.tab_path}`)}
             className="flex items-center text-blue-600 font-bold hover:text-blue-800 transition duration-300 cursor-pointer"
           >
             <FaChartBar className="mr-3" />

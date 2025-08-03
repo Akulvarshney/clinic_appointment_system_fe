@@ -45,11 +45,12 @@ function App() {
       ) : isLoggedIn ? (
         <Route element={<LoggedInLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/registerclient" element={<ClientRegistration />} />
+          <Route path="/registerClient" element={<ClientRegistration />} />
           <Route path="/clients" element={<ClientTable />} />
-          <Route path="/rolemanagement" element={<RoleManagement />} />
+          <Route path="/roleManagement" element={<RoleManagement />} />
           <Route path="/employeeManagement" element={<UserMgmt />} />
-          <Route path="/doctormanagement" element={<DoctorManagement />} />
+          <Route path="/doctorManagement" element={<DoctorManagement />} />
+          {/* <Route path="/reports" element={<div>Reports Page</div>} /> */}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Route>
       ) : (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/SideBar";
 import { Box, CircularProgress } from "@mui/material";
-import { BACKEND_URL } from "../assets/constants";
+import { BACKEND_URL, isFeatureValid } from "../assets/constants";
 import axios from "axios";
 
 const ClientInfoTable = () => {
@@ -13,6 +13,18 @@ const ClientInfoTable = () => {
   const orgId = localStorage.getItem("selectedOrgId");
   const token = localStorage.getItem("token");
   const limit = 15; // items per page
+
+  const [isMobileView, setisMobileView] = useState(false);
+
+  useEffect(() => {
+    const response1 = isFeatureValid("CLIENT_LISTING", "VIEW_MOBILE");
+
+    setisMobileView(response1);
+
+    console.log("isFeatureValid response:", response1);
+  }, []);
+
+  console.log("asdasd", isMobileView);
 
   const fetchClients = async () => {
     try {
@@ -28,7 +40,7 @@ const ClientInfoTable = () => {
         }
       );
       console.log(res);
-      setClients(res.data.clients);
+      setClients(res.data.data || []);
       setTotalPages(res.data.totalPages);
       setLoading(false);
     } catch (err) {
@@ -80,7 +92,9 @@ const ClientInfoTable = () => {
               <thead className="bg-blue-100 text-blue-900 font-semibold">
                 <tr>
                   <th className="px-6 py-4 border-b">Name</th>
-                  <th className="px-6 py-4 border-b">Mobile</th>
+                  {isMobileView ? (
+                    <th className="px-6 py-4 border-b">Mobile</th>
+                  ) : null}
                   <th className="px-6 py-4 border-b">Address</th>
                   <th className="px-6 py-4 border-b">DOB</th>
                   <th className="px-6 py-4 border-b">Gender</th>
@@ -103,10 +117,24 @@ const ClientInfoTable = () => {
                       key={idx}
                       className="border-b hover:bg-blue-50 transition duration-150"
                     >
-                      <td className="px-6 py-4">{client.name}</td>
-                      <td className="px-6 py-4">{client.mobile}</td>
+                      <td className="px-6 py-4">{client.first_name}</td>
+                      {isMobileView ? (
+                        <td className="px-6 py-4">{client.phone}</td>
+                      ) : null}
+
                       <td className="px-6 py-4">{client.address}</td>
-                      <td className="px-6 py-4">{client.dob}</td>
+                      <td className="px-6 py-4">
+                        {client.date_of_birth
+                          ? new Date(client.date_of_birth).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                              }
+                            )
+                          : null}
+                      </td>
                       <td className="px-6 py-4">{client.gender}</td>
                       <td className="px-6 py-4">{client.occupation}</td>
                     </tr>
