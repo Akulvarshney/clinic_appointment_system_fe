@@ -1,51 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../components/SideBar";
-import { Box } from "@mui/material";
-
-const clients = [
-  {
-    name: "John Doe",
-    mobile: "9876543210",
-    address: "123 Main St, Delhi",
-    dob: "1990-01-01",
-    gender: "Male",
-    occupation: "Engineer",
-  },
-  {
-    name: "Priya Sharma",
-    mobile: "9876512345",
-    address: "456 Park Ave, Mumbai",
-    dob: "1992-05-20",
-    gender: "Female",
-    occupation: "Doctor",
-  },
-  {
-    name: "Rahul Kumar",
-    mobile: "9812345678",
-    address: "789 Sector 15, Noida",
-    dob: "1988-03-12",
-    gender: "Male",
-    occupation: "Therapist",
-  },
-  {
-    name: "Sneha Jain",
-    mobile: "9898989898",
-    address: "Bandra West, Mumbai",
-    dob: "1995-11-30",
-    gender: "Female",
-    occupation: "Aesthetician",
-  },
-];
+import { Box, CircularProgress } from "@mui/material";
+import { BACKEND_URL } from "../assets/constants";
+import axios from "axios";
 
 const ClientInfoTable = () => {
+  const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const orgId = localStorage.getItem("selectedOrgId");
+  const token = localStorage.getItem("token");
+  const limit = 15; // items per page
 
-  const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(search.toLowerCase()) ||
-      client.mobile.includes(search) ||
-      client.address.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${BACKEND_URL}/patient/clients/clientListing`,
+        {
+          params: { search, page, limit, orgId },
+
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(res);
+      setClients(res.data.clients);
+      setTotalPages(res.data.totalPages);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching clients:", err);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, [search, page]);
 
   return (
     <Box
@@ -65,53 +59,83 @@ const ClientInfoTable = () => {
         <div className="mb-6">
           <input
             type="text"
-            placeholder="Search by name, mobile or address..."
+            placeholder="Search by name, mobile..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setPage(1); // reset to first page on search
+              setSearch(e.target.value);
+            }}
             className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Table Container */}
         <div className="bg-white rounded-xl shadow-lg overflow-x-auto border border-blue-100">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-blue-100 text-blue-900 font-semibold">
-              <tr>
-                <th className="px-6 py-4 border-b">Name</th>
-                <th className="px-6 py-4 border-b">Mobile</th>
-                <th className="px-6 py-4 border-b">Address</th>
-                <th className="px-6 py-4 border-b">DOB</th>
-                <th className="px-6 py-4 border-b">Gender</th>
-                <th className="px-6 py-4 border-b">Occupation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredClients.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <CircularProgress />
+            </div>
+          ) : (
+            <table className="w-full text-sm text-left">
+              <thead className="bg-blue-100 text-blue-900 font-semibold">
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-6 text-center text-gray-400"
-                  >
-                    No matching clients found.
-                  </td>
+                  <th className="px-6 py-4 border-b">Name</th>
+                  <th className="px-6 py-4 border-b">Mobile</th>
+                  <th className="px-6 py-4 border-b">Address</th>
+                  <th className="px-6 py-4 border-b">DOB</th>
+                  <th className="px-6 py-4 border-b">Gender</th>
+                  <th className="px-6 py-4 border-b">Occupation</th>
                 </tr>
-              ) : (
-                filteredClients.map((client, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b hover:bg-blue-50 transition duration-150"
-                  >
-                    <td className="px-6 py-4">{client.name}</td>
-                    <td className="px-6 py-4">{client.mobile}</td>
-                    <td className="px-6 py-4">{client.address}</td>
-                    <td className="px-6 py-4">{client.dob}</td>
-                    <td className="px-6 py-4">{client.gender}</td>
-                    <td className="px-6 py-4">{client.occupation}</td>
+              </thead>
+              <tbody>
+                {(clients?.length ?? 0) === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-6 text-center text-gray-400"
+                    >
+                      No matching clients found.
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  clients.map((client, idx) => (
+                    <tr
+                      key={idx}
+                      className="border-b hover:bg-blue-50 transition duration-150"
+                    >
+                      <td className="px-6 py-4">{client.name}</td>
+                      <td className="px-6 py-4">{client.mobile}</td>
+                      <td className="px-6 py-4">{client.address}</td>
+                      <td className="px-6 py-4">{client.dob}</td>
+                      <td className="px-6 py-4">{client.gender}</td>
+                      <td className="px-6 py-4">{client.occupation}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="mt-4 flex justify-center items-center gap-2">
+          <button
+            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+            disabled={page === 1}
+            className="px-4 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="text-blue-700 font-medium">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
     </Box>

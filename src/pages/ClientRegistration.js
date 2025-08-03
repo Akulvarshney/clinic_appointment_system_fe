@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Box,
@@ -13,6 +13,8 @@ import {
   Divider,
   Alert,
 } from "@mui/material";
+import { BACKEND_URL } from "../assets/constants";
+
 import Sidebar from "../components/SideBar.js";
 
 const ClientRegistration = () => {
@@ -29,6 +31,41 @@ const ClientRegistration = () => {
   });
 
   const [errorMsg, seterrorMsg] = React.useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const [roleId, setRoleId] = React.useState(null);
+  React.useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const orgId = localStorage.getItem("selectedOrgId");
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          `${BACKEND_URL}/clientAdmin/userMgmt/getRoles?orgId=${orgId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const roles = res.data.response || [];
+        const clientRole = roles.find(
+          (role) =>
+            role.name === "CLIENT" && role.description === "DEFAULT CLIENT"
+        );
+        console.log("siddhant>>> ", clientRole);
+        if (clientRole) {
+          setRoleId(clientRole.id);
+        } else {
+          console.warn("CLIENT / DEFAULT CLIENT role not found");
+        }
+      } catch (err) {
+        console.error("Error fetching roles:", err);
+      }
+    };
+
+    fetchRoles();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -50,11 +87,52 @@ const ClientRegistration = () => {
         seterrorMsg("Please Enter all the Mandatory fields");
         return;
       }
-      // Add organization_id in formdata
-      const response = await axios.post("http://localhost:3000/api/", formData);
-      console.log("Success:", response.data);
+      if (!roleId) {
+        seterrorMsg("Role not loaded yet. Please try again shortly.");
+        return;
+      }
+
+      const orgId = localStorage.getItem("selectedOrgId");
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${BACKEND_URL}/patient/clients/registerClient`,
+        {
+          Firstname: formData.Firstname,
+          Secondname: formData.Secondname,
+          address: formData.address,
+          mobile: formData.mobile,
+          dob: formData.dob,
+          gender: formData.gender,
+          occupation: formData.occupation,
+          email: formData.email,
+          emergencyContact: formData.emergencyContact,
+          organization_id: orgId,
+          roleId: roleId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 201 || response.status === 200) {
+        setFormData({ roleName: "", roleDescription: "" });
+        //setErrors({});
+        seterrorMsg("");
+        setSuccessMsg("Role created successfully.");
+        // message.success("Role added successfully.");
+      } else {
+        seterrorMsg("Failed to Register Client");
+      }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("API Error:", error);
+      setSuccessMsg("");
+      seterrorMsg("Registration:failed. Please try again later");
+      // message.error(
+      //   error.response?.data?.message ||
+      //     "Something went wrong. Please try again."
+      // );
     }
   };
 
@@ -66,7 +144,7 @@ const ClientRegistration = () => {
         background: "linear-gradient(to right, #e6f0ff, #f8fbff)",
       }}
     >
-      <Box sx={{ flexGrow: 1, p: 4, maxWidth: "calc(100% - 260px)" }}>
+      <Box sx={{ flexGrow: 1, p: 4 }}>
         <Typography
           variant="h4"
           sx={{ color: "#0047ab", fontWeight: "bold", mb: 4 }}
@@ -94,11 +172,10 @@ const ClientRegistration = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 name="Secondname"
-                label="Second Name"
+                label="Last Name"
                 value={formData.Secondname}
                 onChange={handleChange}
                 fullWidth
-                required
                 sx={{ minWidth: 300 }}
               />
             </Grid>
@@ -192,8 +269,13 @@ const ClientRegistration = () => {
             {/* Medical & Emergency Info */}
           </Grid>
           {errorMsg && (
-            <Alert severity="error" sx={{ fontSize: "0.85rem" }}>
+            <Alert sx={{ mb: 2, mt: 2 }} severity="error">
               {errorMsg}
+            </Alert>
+          )}
+          {successMsg && (
+            <Alert sx={{ mb: 2, mt: 2 }} severity="success">
+              {successMsg}
             </Alert>
           )}
           <Button

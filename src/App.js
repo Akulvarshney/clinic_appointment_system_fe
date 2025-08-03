@@ -5,9 +5,10 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import ClientRegistration from "./pages/ClientRegistration";
+import DoctorManagement from "./pages/doctorManagement";
 import ClientTable from "./pages/ClientTable";
 import RoleManagement from "./pages/RoleCreation";
-import UserMgmt from "./pages/UserCreation";
+import UserMgmt from "./pages/EmployeeManagement";
 
 import LoggedOutLayout from "./layouts/LoggedOutLayout";
 import LoggedInLayout from "./layouts/LoggedInLayout";
@@ -47,7 +48,8 @@ function App() {
           <Route path="/registerclient" element={<ClientRegistration />} />
           <Route path="/clients" element={<ClientTable />} />
           <Route path="/rolemanagement" element={<RoleManagement />} />
-          <Route path="/userCreation" element={<UserMgmt />} />
+          <Route path="/employeeManagement" element={<UserMgmt />} />
+          <Route path="/doctormanagement" element={<DoctorManagement />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Route>
       ) : (
