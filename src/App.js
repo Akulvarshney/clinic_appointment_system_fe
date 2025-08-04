@@ -17,6 +17,7 @@ import Login from "./pages/SuperAdmin/Login";
 import { useAuth } from "./layouts/AuthContext";
 import DashboardSAPage from "./pages/SuperAdmin/DashboardSApage";
 import OrganisationListing from "./pages/SuperAdmin/OrganisationListing";
+import ResourceManagement from "./pages/ResourceManagement";
 
 import "../src/App.css";
 import { message } from "antd";
@@ -50,6 +51,7 @@ function App() {
           <Route path="/roleManagement" element={<RoleManagement />} />
           <Route path="/employeeManagement" element={<UserMgmt />} />
           <Route path="/doctorManagement" element={<DoctorManagement />} />
+          <Route path="/resourceManagement" element={<ResourceManagement />} />
           {/* <Route path="/reports" element={<div>Reports Page</div>} /> */}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Route>

@@ -16,6 +16,7 @@ const RoleManagement = () => {
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [roles, setRoles] = useState([]);
 
   const fetchRoles = async () => {
@@ -50,6 +51,7 @@ const RoleManagement = () => {
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true);
     const newErrors = {};
     if (!formData.roleName.trim()) newErrors.roleName = "Role name is required";
     if (!formData.roleDescription.trim())
@@ -81,13 +83,16 @@ const RoleManagement = () => {
         setErrors({});
         setErrorMsg("");
         setSuccessMsg("Role created successfully.");
+        setIsSubmitting(false);
         message.success("Role added successfully.");
       } else {
+        setIsSubmitting(false);
         message.error("Failed to add role.");
       }
     } catch (error) {
       console.error("API Error:", error);
       setSuccessMsg("");
+      setIsSubmitting(false);
       setErrorMsg("Please try again later or with other Role Name");
       message.error(
         error.response?.data?.message ||
@@ -169,9 +174,10 @@ const RoleManagement = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleSubmit}
+                  disabled={isSubmitting}
                   className="mt-2"
                 >
-                  Save Role
+                  {isSubmitting ? "Saving..." : "Save Role"}
                 </Button>
               </div>
             </div>

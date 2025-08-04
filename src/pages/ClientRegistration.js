@@ -48,8 +48,10 @@ const ClientRegistration = () => {
         );
 
         const roles = res.data.response || [];
-        const clientRole = roles.find((role) => role.name === "CLIENT");
-        console.log("siddhant>>> ", clientRole);
+        const clientRole = roles.find(
+          (role) =>
+            role.name === "CLIENT" && role.description === "DEFAULT CLIENT"
+        );
         if (clientRole) {
           setRoleId(clientRole.id);
         } else {
