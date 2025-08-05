@@ -20,6 +20,7 @@ import OrganisationListing from "./pages/SuperAdmin/OrganisationListing";
 
 import "../src/App.css";
 import { message } from "antd";
+import Settings from "./pages/settings/Settings";
 
 function App() {
   // const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -50,6 +51,7 @@ function App() {
           <Route path="/roleManagement" element={<RoleManagement />} />
           <Route path="/employeeManagement" element={<UserMgmt />} />
           <Route path="/doctorManagement" element={<DoctorManagement />} />
+          <Route path="/settings" element={<Settings />} />
           {/* <Route path="/reports" element={<div>Reports Page</div>} /> */}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Route>

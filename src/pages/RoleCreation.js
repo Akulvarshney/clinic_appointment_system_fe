@@ -1,37 +1,39 @@
+// RoleManagement.js
 import React, { useState, useEffect } from "react";
-import { Box, TextField, Button, Typography, Alert } from "@mui/material";
-import Sidebar from "../components/SideBar";
-import { Tabs, Table, message } from "antd";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  message,
+  Alert,
+  Switch,
+} from "antd";
 import axios from "axios";
-
 import { BACKEND_URL } from "../assets/constants";
 
-const { TabPane } = Tabs;
-
 const RoleManagement = () => {
-  const [formData, setFormData] = useState({
-    roleName: "",
-    roleDescription: "",
-  });
-  const [errors, setErrors] = useState({});
+  const [roles, setRoles] = useState([]);
+  const [selectedRoleData, setSelectedRoleData] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [form] = Form.useForm();
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [roles, setRoles] = useState([]);
+  const [editingRole, setEditingRole] = useState(null);
+
+  const orgId = localStorage.getItem("selectedOrgId");
+  const token = localStorage.getItem("token");
 
   const fetchRoles = async () => {
     try {
-      const orgId = localStorage.getItem("selectedOrgId");
-      console.log("orgId>>>> ", orgId);
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BACKEND_URL}/clientAdmin/userMgmt/getRoles?orgId=${orgId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       if (response.status === 200) {
         setRoles(response.data.response || []);
       } else {
@@ -43,52 +45,77 @@ const RoleManagement = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+  const fetchAllTabsAndFeatureOfRole = async (roleId) => {
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/clientAdmin/userMgmt/getTabsAndFeaturesByRole?roleId=${roleId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.status === 200) {
+        setSelectedRoleData(response.data.data || []);
+      } else {
+        message.error("Failed to fetch role features.");
+      }
+    } catch (err) {
+      console.error("Error fetching role features:", err);
+      message.error("Something went wrong while fetching features.");
+    }
   };
 
-  const handleSubmit = async () => {
-    const newErrors = {};
-    if (!formData.roleName.trim()) newErrors.roleName = "Role name is required";
-    if (!formData.roleDescription.trim())
-      newErrors.roleDescription = "Role description is required";
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
+  const handleToggle = (tabId, featureId, newValue) => {
+    const updated = selectedRoleData.map((tab) => {
+      if (tab.tabId === tabId) {
+        return {
+          ...tab,
+          features: tab.features.map((feature) =>
+            feature.featureId === featureId
+              ? { ...feature, isValid: newValue }
+              : feature
+          ),
+        };
+      }
+      return tab;
+    });
+    setSelectedRoleData(updated);
+  };
+
+  const handleCreateRole = async (values) => {
     try {
       const orgId = localStorage.getItem("selectedOrgId");
       const token = localStorage.getItem("token");
+
       const response = await axios.post(
         `${BACKEND_URL}/clientAdmin/userMgmt/createRole`,
         {
-          roleName: formData.roleName,
-          roleDesc: formData.roleDescription,
-          orgId: orgId,
+          roleName: values.roleName,
+          roleDesc: values.roleDescription,
+          orgId,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       if (response.status === 201 || response.status === 200) {
-        setFormData({ roleName: "", roleDescription: "" });
-        setErrors({});
+        message.success("Role added successfully.");
+        form.resetFields();
+        setModalVisible(false);
         setErrorMsg("");
         setSuccessMsg("Role created successfully.");
-        message.success("Role added successfully.");
+        fetchRoles(); // Refresh table
       } else {
         message.error("Failed to add role.");
       }
     } catch (error) {
       console.error("API Error:", error);
       setSuccessMsg("");
-      setErrorMsg("Please try again later or with other Role Name");
+      setErrorMsg("Please try again later or with another Role Name");
       message.error(
         error.response?.data?.message ||
           "Something went wrong. Please try again."
@@ -96,122 +123,215 @@ const RoleManagement = () => {
     }
   };
 
-  const columns = [
+  const handleSubmitRoleFeatureUpdates = async () => {
+    try {
+      const payload = {
+        roleId: editingRole.id,
+        tabFeatureMapping: selectedRoleData.map((tab) => ({
+          tabId: tab.tabId,
+          features: tab.features.map((feature) => ({
+            featureId: feature.featureId,
+            isValid: feature.isValid,
+          })),
+        })),
+      };
+
+      await axios.post(
+        `${BACKEND_URL}/clientAdmin/userMgmt/updateTabAndFeatureAccess`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      message.success("Permissions updated successfully");
+      setEditModalVisible(false);
+      setSelectedRoleData([]);
+      setEditingRole(null);
+      fetchRoles(); // Refresh roles after update
+    } catch (error) {
+      console.error("Error submitting features:", error);
+      message.error("Failed to update role features");
+    }
+  };
+
+  const tableData = selectedRoleData.flatMap((tab) =>
+    tab.features.map((feature) => ({
+      key: `${tab.tabId}-${feature.featureId}`,
+      tabName: tab.tabName,
+      featureName: feature.featureName,
+      isValid: feature.isValid,
+      tabId: tab.tabId,
+      featureId: feature.featureId,
+    }))
+  );
+
+  const roleColumns = [
     {
       title: "Role Name",
-      dataIndex: "roleName",
-      key: "roleName",
+      dataIndex: "name",
+      key: "name",
     },
     {
       title: "Role Description",
-      dataIndex: "roleDescription",
-      key: "roleDescription",
+      dataIndex: "description",
+      key: "description",
+      render: (text) => text || "—",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (text, record) => (
+        <Button
+          type="link"
+          onClick={async () => {
+            setEditingRole(record);
+            await fetchAllTabsAndFeatureOfRole(record.id);
+            setEditModalVisible(true);
+          }}
+        >
+          Edit
+        </Button>
+      ),
     },
   ];
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", background: "#f4f9ff" }}>
-      <div className="flex-1 p-6 sm:p-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-6">
-          Role Management
-        </h1>
-
-        <Tabs
-          defaultActiveKey="1"
-          onChange={(activeKey) => {
-            if (activeKey === "2") {
-              fetchRoles();
-            }
-            if (activeKey == "1") {
-              setErrorMsg("");
-              setSuccessMsg("");
-            }
-          }}
-        >
-          <TabPane tab="Create Role" key="1">
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow max-w-4xl">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="w-full">
-                  <TextField
-                    label="Role Name"
-                    name="roleName"
-                    value={formData.roleName}
-                    onChange={handleChange}
-                    error={!!errors.roleName}
-                    helperText={errors.roleName}
-                    fullWidth
-                  />
-                </div>
-                <div className="w-full">
-                  <TextField
-                    label="Role Description"
-                    name="roleDescription"
-                    value={formData.roleDescription}
-                    onChange={handleChange}
-                    error={!!errors.roleDescription}
-                    helperText={errors.roleDescription}
-                    fullWidth
-                  />
-                </div>
-              </div>
-              {errorMsg && (
-                <Alert sx={{ mb: 2, mt: 2 }} severity="error">
-                  {errorMsg}
-                </Alert>
-              )}
-              {successMsg && (
-                <Alert sx={{ mb: 2, mt: 2 }} severity="success">
-                  {successMsg}
-                </Alert>
-              )}
-              <div className="mt-4">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmit}
-                  className="mt-2"
-                >
-                  Save Role
-                </Button>
-              </div>
-            </div>
-          </TabPane>
-          <TabPane tab="Role Listing" key="2">
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-blue-100 text-blue-900 font-semibold">
-                  <tr>
-                    <th className="px-6 py-4 border-b">Role Name</th>
-                    <th className="px-6 py-4 border-b">Role Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {roles.length > 0 ? (
-                    roles.map((role) => (
-                      <tr key={role.id}>
-                        <td className="px-6 py-3 border-b">{role.name}</td>
-                        <td className="px-6 py-3 border-b">
-                          {role.description || "—"}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="2"
-                        className="px-6 py-4 text-center text-gray-500"
-                      >
-                        No roles available.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </TabPane>
-        </Tabs>
+    <div style={{ padding: 24 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <h1 style={{ fontSize: 24, fontWeight: 600 }}>Role Management</h1>
+        <Button type="primary" onClick={() => setModalVisible(true)}>
+          Create Role
+        </Button>
       </div>
-    </Box>
+
+      <Table
+        columns={roleColumns}
+        dataSource={roles}
+        rowKey="id"
+        bordered
+        pagination={false}
+      />
+
+      <Modal
+        title="Create New Role"
+        open={modalVisible}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+          setErrorMsg("");
+          setSuccessMsg("");
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreateRole}
+          autoComplete="off"
+        >
+          <Form.Item
+            label="Role Name"
+            name="roleName"
+            rules={[{ required: true, message: "Role name is required" }]}
+          >
+            <Input placeholder="Enter role name" />
+          </Form.Item>
+
+          <Form.Item
+            label="Role Description"
+            name="roleDescription"
+            rules={[
+              { required: true, message: "Role description is required" },
+            ]}
+          >
+            <Input placeholder="Enter role description" />
+          </Form.Item>
+
+          {errorMsg && (
+            <Alert
+              message={errorMsg}
+              type="error"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
+
+          {successMsg && (
+            <Alert
+              message={successMsg}
+              type="success"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
+              Save Role
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`Edit Role: ${editingRole?.name}`}
+        open={editModalVisible}
+        onCancel={() => setEditModalVisible(false)}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={() => setEditModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={handleSubmitRoleFeatureUpdates}
+          >
+            Submit Changes
+          </Button>,
+        ]}
+      >
+        <Table
+          columns={[
+            {
+              title: "Tab Name",
+              dataIndex: "tabName",
+              key: "tabName",
+            },
+            {
+              title: "Feature Name",
+              dataIndex: "featureName",
+              key: "featureName",
+            },
+            {
+              title: "Access",
+              dataIndex: "isValid",
+              key: "isValid",
+              render: (_, record) => (
+                <Switch
+                  checked={record.isValid}
+                  onChange={(checked) =>
+                    handleToggle(record.tabId, record.featureId, checked)
+                  }
+                />
+              ),
+            },
+          ]}
+          dataSource={tableData}
+          pagination={false}
+          bordered
+        />
+      </Modal>
+    </div>
   );
 };
 
