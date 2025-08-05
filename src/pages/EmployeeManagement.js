@@ -33,6 +33,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [roles, setRoles] = useState([]);
   const orgId = localStorage.getItem("selectedOrgId");
@@ -84,14 +85,21 @@ const UserManagement = () => {
     if (!formData.password) newErrors.password = "Password is required";
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     setErrorMsg("");
     setSuccessMsg("");
+    setIsSubmitting(true);
     validate();
-    console.log("after validate");
+    const isValid = validate();
+    if (!isValid) {
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const orgId = localStorage.getItem("selectedOrgId");
       const token = localStorage.getItem("token");
@@ -140,6 +148,7 @@ const UserManagement = () => {
 
         setErrors({});
         setErrorMsg("");
+        setIsSubmitting(false);
         setSuccessMsg("Employee created successfully.");
         message.success("Employee added successfully.");
       } else {
@@ -148,6 +157,7 @@ const UserManagement = () => {
     } catch (error) {
       setSuccessMsg("");
       if (error.response) {
+        setIsSubmitting(false);
         setErrorMsg(error.response.data.message);
         //console.log("VALIDATION ERROR:", error.response.data);
       }
@@ -338,9 +348,10 @@ const UserManagement = () => {
                 <Button
                   variant="contained"
                   color="primary"
+                  disabled={isSubmitting}
                   onClick={handleSubmit}
                 >
-                  Save User
+                  {isSubmitting ? "Saving..." : "Save User"}
                 </Button>
               </div>
             </div>

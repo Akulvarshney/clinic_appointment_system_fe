@@ -25,6 +25,7 @@ const RoleManagement = () => {
 
   const orgId = localStorage.getItem("selectedOrgId");
   const token = localStorage.getItem("token");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchRoles = async () => {
     try {
@@ -109,13 +110,17 @@ const RoleManagement = () => {
         setErrorMsg("");
         setSuccessMsg("Role created successfully.");
         fetchRoles(); // Refresh table
+        setIsSubmitting(false);
+        message.success("Role added successfully.");
       } else {
+        setIsSubmitting(false);
         message.error("Failed to add role.");
       }
     } catch (error) {
       console.error("API Error:", error);
       setSuccessMsg("");
-      setErrorMsg("Please try again later or with another Role Name");
+      setIsSubmitting(false);
+      setErrorMsg("Please try again later or with other Role Name");
       message.error(
         error.response?.data?.message ||
           "Something went wrong. Please try again."
