@@ -15,6 +15,7 @@ import {
 import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import Sidebar from "../components/SideBar";
 import { BACKEND_URL, isFeatureValid } from "../assets/constants";
+import { debounce } from "lodash";
 
 const { Option } = Select;
 const { Search } = Input;
@@ -45,8 +46,15 @@ const ClientManagement = () => {
     fetchClients();
   }, []);
 
+  // useEffect(() => {
+  //   fetchClients();
+  // }, [search, pagination.current]);
   useEffect(() => {
-    fetchClients();
+    const delayDebounce = setTimeout(() => {
+      fetchClients();
+    }, 500); // wait 500ms after user stops typing
+
+    return () => clearTimeout(delayDebounce);
   }, [search, pagination.current]);
 
   const fetchRoleId = async () => {
@@ -301,6 +309,9 @@ const ClientManagement = () => {
             onChange={(e) => {
               if (!e.target.value) {
                 handleSearch("");
+              } else {
+                setSearch(e.target.value);
+                setPagination((prev) => ({ ...prev, current: 1 }));
               }
             }}
             style={{ maxWidth: 400 }}

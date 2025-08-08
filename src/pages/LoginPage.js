@@ -167,7 +167,12 @@ const LoginPage = () => {
             </Button>
 
             <Box textAlign="center" className="flex flex-col">
-              <Button variant="text" size="small" className="small-text-button">
+              <Button
+                variant="text"
+                size="small"
+                className="small-text-button"
+                onClick={() => navigate("/forgetpassword")}
+              >
                 Forgot your password?
               </Button>
               <Button

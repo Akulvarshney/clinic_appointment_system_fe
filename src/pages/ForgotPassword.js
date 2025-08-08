@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Form, Input, Button, Alert, Card, Typography } from "antd";
 import { UserOutlined, LockOutlined, KeyOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-// import axios from "axios";
-// import { BACKEND_URL } from "../../assets/constants";
+import axios from "axios";
+import { BACKEND_URL } from "../assets/constants";
 
 const { Title, Text } = Typography;
 
@@ -11,35 +11,35 @@ const ForgotPassword = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
 
-  const [step, setStep] = useState(1); // 1: Login ID, 2: OTP, 3: Reset Password
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // === API CALL PLACEHOLDERS ===
   const sendOtpApi = async (loginId) => {
-    // Example API call
-    // await axios.post(`${BACKEND_URL}/noAuth/auth/send-otp`, { login_id: loginId });
     console.log("Send OTP API for:", loginId);
   };
 
   const verifyOtpApi = async (loginId, otp) => {
-    // Example API call
-    // await axios.post(`${BACKEND_URL}/noAuth/auth/verify-otp`, { login_id: loginId, otp });
     console.log("Verify OTP API for:", loginId, otp);
   };
 
   const resetPasswordApi = async (loginId, newPass) => {
-    // Example API call
-    // await axios.post(`${BACKEND_URL}/noAuth/auth/reset-password`, { login_id: loginId, password: newPass });
     console.log("Reset password API for:", loginId, newPass);
   };
 
-  // === HANDLERS ===
   const handleSendOtp = async (values) => {
     setErrorMsg("");
     setLoading(true);
+    console.log("vlaues.loginId ", values.loginId);
+    if (!values.loginId || values.loginId.trim() === "") {
+      console.log("Changes AIIIIII");
+      setErrorMsg("login Id cannot be empty");
+      setLoading(false);
+      return;
+    }
     try {
-      await sendOtpApi(values.loginId);
+      await sendOtpApi(values.loginId); // first check if the user exists
+      // then send the OTP
       setStep(2);
     } catch (err) {
       setErrorMsg("Failed to send OTP. Please try again.");
@@ -101,7 +101,6 @@ const ForgotPassword = () => {
               />
             )}
 
-            {/* Step Forms */}
             {step === 1 && (
               <Form
                 form={form}
