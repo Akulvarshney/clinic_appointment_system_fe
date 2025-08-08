@@ -18,10 +18,14 @@ import { useAuth } from "./layouts/AuthContext";
 import DashboardSAPage from "./pages/SuperAdmin/DashboardSApage";
 import OrganisationListing from "./pages/SuperAdmin/OrganisationListing";
 import ResourceManagement from "./pages/ResourceManagement";
+import ServicesManagement from "./pages/Services";
+import AppointmentPage from "./pages/AppointmentPage";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import "../src/App.css";
 import { message } from "antd";
 import Settings from "./pages/settings/Settings";
+import ClientManagement from "./pages/ClientManagement";
 
 function App() {
   // const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -47,14 +51,16 @@ function App() {
       ) : isLoggedIn ? (
         <Route element={<LoggedInLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/registerClient" element={<ClientRegistration />} />
-          <Route path="/clients" element={<ClientTable />} />
+          {/* <Route path="/registerClient" element={<ClientRegistration />} /> */}
+          <Route path="/clients" element={<ClientManagement />} />
           <Route path="/roleManagement" element={<RoleManagement />} />
           <Route path="/employeeManagement" element={<UserMgmt />} />
           <Route path="/doctorManagement" element={<DoctorManagement />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/resourceManagement" element={<ResourceManagement />} />
-          {/* <Route path="/reports" element={<div>Reports Page</div>} /> */}
+          <Route path="/servicesManagement" element={<ServicesManagement />} />
+          <Route path="/appointments" element={<AppointmentPage />} />
+
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Route>
       ) : (
@@ -62,6 +68,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/superAdmin/login" element={<Login />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgetpassword" element={<ForgotPassword />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
       )}

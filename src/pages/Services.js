@@ -13,59 +13,63 @@ import {
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { BACKEND_URL } from "../assets/constants";
 
-const ResourceManagement = () => {
+const { TextArea } = Input;
+
+const Services = () => {
   const [form] = Form.useForm();
-  const [resources, setResources] = useState([]);
+  const [services, setServices] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
-  const [loadingResourceId, setLoadingResourceId] = useState(null);
+  const [loadingServiceId, setLoadingServiceId] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [editingResource, setEditingResource] = useState(null);
+  const [editingService, setEditingService] = useState(null);
 
   const token = localStorage.getItem("token");
   const orgId = localStorage.getItem("selectedOrgId");
 
-  const fetchResources = async () => {
+  const fetchServices = async () => {
     setTableLoading(true);
     try {
       const response = await axios.get(
-        `${BACKEND_URL}/clientadmin/resourceManagement/getResources?orgId=${orgId}`,
+        `${BACKEND_URL}/clientadmin/serviceManagement/getServices?orgId=${orgId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setResources(response.data.response || []);
+      setServices(response.data.data || []);
     } catch (err) {
-      console.error("Error fetching resources:", err);
-      message.error("Failed to fetch resources");
+      console.error("Error fetching services:", err);
+      message.error("Failed to fetch services");
     } finally {
       setTableLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchResources();
+    fetchServices();
   }, []);
 
-  const handleAddResource = () => {
-    setEditingResource(null);
+  const handleAddService = () => {
+    setEditingService(null);
     form.resetFields();
     setIsModalVisible(true);
     setErrorMsg("");
     setSuccessMsg("");
   };
 
-  const handleEditResource = (resource) => {
-    setEditingResource(resource);
+  const handleEditService = (service) => {
+    setEditingService(service);
     form.setFieldsValue({
-      name: resource.name,
+      name: service.name,
+      description: service.description,
+      price: service.price,
     });
     setIsModalVisible(true);
     setErrorMsg("");
@@ -75,7 +79,7 @@ const ResourceManagement = () => {
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setEditingResource(null);
+    setEditingService(null);
     setErrorMsg("");
     setSuccessMsg("");
   };
@@ -86,13 +90,15 @@ const ResourceManagement = () => {
     setLoading(true);
 
     try {
-      if (editingResource) {
-        // Update existing resource (assuming API endpoint exists)
+      if (editingService) {
+        // Update existing service
         await axios.put(
-          `${BACKEND_URL}/clientadmin/resourceManagement/updateResource`,
+          `${BACKEND_URL}/clientadmin/serviceManagement/updateService`,
           {
-            id: editingResource.id,
-            resourceName: values.name,
+            id: editingService.id,
+            serviceName: values.name,
+            desc: values.description,
+            price: values.price,
             orgId: orgId,
           },
           {
@@ -101,14 +107,16 @@ const ResourceManagement = () => {
             },
           }
         );
-        message.success("Resource updated successfully");
-        setSuccessMsg("Resource updated successfully");
+        message.success("Service updated successfully");
+        setSuccessMsg("Service updated successfully");
       } else {
-        // Create new resource
+        // Create new service
         await axios.post(
-          `${BACKEND_URL}/clientadmin/resourceManagement/createResource`,
+          `${BACKEND_URL}/clientadmin/serviceManagement/createService`,
           {
-            resourceName: values.name,
+            serviceName: values.name,
+            desc: values.description,
+            price: values.price,
             orgId: orgId,
           },
           {
@@ -117,18 +125,18 @@ const ResourceManagement = () => {
             },
           }
         );
-        message.success("Resource added successfully");
-        setSuccessMsg("Resource added successfully");
+        message.success("Service added successfully");
+        setSuccessMsg("Service added successfully");
       }
 
       setIsModalVisible(false);
       form.resetFields();
-      setEditingResource(null);
-      fetchResources();
+      setEditingService(null);
+      fetchServices();
     } catch (err) {
-      const errorMessage = editingResource
-        ? "Failed to update resource"
-        : "Failed to add resource";
+      const errorMessage = editingService
+        ? "Failed to update service"
+        : "Failed to add service";
       setErrorMsg(errorMessage);
       message.error(errorMessage);
       console.error("API Error:", err);
@@ -139,10 +147,10 @@ const ResourceManagement = () => {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      setLoadingResourceId(id);
+      setLoadingServiceId(id);
       await axios.patch(
-        `${BACKEND_URL}/clientadmin/resourceManagement/updateResources?id=${id}`,
-        { status: newStatus },
+        `${BACKEND_URL}/clientadmin/serviceManagement/updateServiceStatus?id=${id}`,
+        { is_valid: newStatus },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -152,40 +160,39 @@ const ResourceManagement = () => {
       message.success("Status updated successfully");
       setSuccessMsg("Status updated successfully");
       setErrorMsg("");
-      fetchResources();
+      fetchServices();
     } catch (err) {
       setErrorMsg("Failed to update status");
       setSuccessMsg("");
       message.error("Failed to update status");
       console.error("Status update error:", err);
     } finally {
-      setLoadingResourceId(null);
+      setLoadingServiceId(null);
     }
   };
 
-  const handleDeleteResource = async (id) => {
+  const handleDeleteService = async (id) => {
     try {
-      setLoadingResourceId(id);
-      // Update this endpoint when the actual delete API is available
+      setLoadingServiceId(id);
       await axios.delete(
-        `${BACKEND_URL}/clientadmin/resourceManagement/deleteResource?id=${id}`,
+        `${BACKEND_URL}/clientadmin/serviceManagement/deleteService?id=${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      message.success("Resource deleted successfully");
-      setSuccessMsg("Resource deleted successfully");
+      message.success("Service deleted successfully");
+      setSuccessMsg("Service deleted successfully");
       setErrorMsg("");
-      fetchResources();
+      fetchServices();
     } catch (err) {
-      setErrorMsg("Failed to delete resource");
+      setErrorMsg("Failed to delete service");
       setSuccessMsg("");
-      message.error("Failed to delete resource");
+      message.error("Failed to delete service");
       console.error("Delete error:", err);
     } finally {
-      setLoadingResourceId(null);
+      setLoadingServiceId(null);
     }
   };
 
@@ -194,38 +201,41 @@ const ResourceManagement = () => {
       title: "ID",
       dataIndex: "portal_id",
       key: "portal_id",
-      // sorter: (a, b) => a.portal_id - b.portal_id,
     },
     {
-      title: "Resource Name",
+      title: "Service Name",
       dataIndex: "name",
       key: "name",
-      // sorter: (a, b) => a.name.localeCompare(b.name),
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+      // render: (price) => `₹${price}`,
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      // width: 300,
+      ellipsis: true,
     },
     {
       title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => (
+      dataIndex: "is_valid",
+      key: "is_valid",
+      // width: 120,
+      render: (is_valid, record) => (
         <Popconfirm
           title={`Are you sure you want to ${
-            status === "ENABLED" ? "disable" : "enable"
-          } this resource?`}
-          onConfirm={() =>
-            handleStatusChange(
-              record.id,
-              status === "ENABLED" ? "DISABLED" : "ENABLED"
-            )
-          }
+            is_valid ? "disable" : "enable"
+          } this service?`}
+          onConfirm={() => handleStatusChange(record.id, !is_valid)}
           okText="Yes"
           cancelText="No"
         >
-          <Tag
-            color={status === "ENABLED" ? "green" : "red"}
-            style={{ cursor: "pointer" }}
-            loading={loadingResourceId === record.id}
-          >
-            {status || "ENABLED"}
+          <Tag color={is_valid ? "green" : "red"} style={{ cursor: "pointer" }}>
+            {is_valid ? "ENABLED" : "DISABLED"}
           </Tag>
         </Popconfirm>
       ),
@@ -233,19 +243,20 @@ const ResourceManagement = () => {
     {
       title: "Actions",
       key: "actions",
+      // width: 150,
       render: (_, record) => (
         <Space size="small">
           <Button
             type="link"
             icon={<EditOutlined />}
-            onClick={() => handleEditResource(record)}
+            onClick={() => handleEditService(record)}
             size="small"
           >
             Edit
           </Button>
           <Popconfirm
-            title="Are you sure you want to delete this resource?"
-            onConfirm={() => handleDeleteResource(record.id)}
+            title="Are you sure you want to delete this service?"
+            onConfirm={() => handleDeleteService(record.id)}
             okText="Yes"
             cancelText="No"
           >
@@ -253,7 +264,7 @@ const ResourceManagement = () => {
               type="link"
               danger
               icon={<DeleteOutlined />}
-              loading={loadingResourceId === record.id}
+              loading={loadingServiceId === record.id}
               size="small"
             >
               Delete
@@ -275,15 +286,15 @@ const ResourceManagement = () => {
       <div className="flex-1 p-6 sm:p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">
-            Resource Management
+            Service Management
           </h1>
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAddResource}
+            onClick={handleAddService}
             size="large"
           >
-            Add Resource
+            Add Service
           </Button>
         </div>
 
@@ -312,7 +323,7 @@ const ResourceManagement = () => {
         <div className="bg-white rounded-lg shadow">
           <Table
             columns={columns}
-            dataSource={resources}
+            dataSource={services}
             loading={tableLoading}
             rowKey="id"
             pagination={{
@@ -320,16 +331,16 @@ const ResourceManagement = () => {
               showSizeChanger: false,
               showQuickJumper: true,
             }}
-            scroll={{ x: 600 }}
+            scroll={{ x: 800 }}
           />
         </div>
 
         <Modal
-          title={editingResource ? "Edit Resource" : "Add New Resource"}
+          title={editingService ? "Edit Service" : "Add New Service"}
           open={isModalVisible}
           onCancel={handleModalCancel}
           footer={null}
-          width={500}
+          width={800}
           destroyOnClose
         >
           <div className="modal_outDiv">
@@ -340,17 +351,42 @@ const ResourceManagement = () => {
               autoComplete="off"
             >
               <Form.Item
-                label="Resource Name"
+                label="Service Name"
                 name="name"
                 rules={[
-                  { required: true, message: "Please enter resource name!" },
+                  { required: true, message: "Please enter service name!" },
                   {
                     min: 2,
-                    message: "Resource name must be at least 2 characters!",
+                    message: "Service name must be at least 2 characters!",
                   },
                 ]}
               >
-                <Input placeholder="Enter resource name" />
+                <Input placeholder="Enter service name" />
+              </Form.Item>
+
+              <Form.Item label="Description" name="description">
+                <TextArea rows={3} placeholder="Enter service description" />
+              </Form.Item>
+
+              <Form.Item
+                label="Price"
+                name="price"
+                rules={[
+                  { required: true, message: "Please enter price!" },
+                  {
+                    pattern: /^\d+(\.\d{1,2})?$/,
+                    message:
+                      "Please enter a valid price (e.g., 100 or 100.50)!",
+                  },
+                ]}
+              >
+                <Input
+                  placeholder="Enter price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  addonBefore="₹"
+                />
               </Form.Item>
 
               {errorMsg && (
@@ -375,12 +411,12 @@ const ResourceManagement = () => {
                 <Button onClick={handleModalCancel}>Cancel</Button>
                 <Button type="primary" htmlType="submit" loading={loading}>
                   {loading
-                    ? editingResource
+                    ? editingService
                       ? "Updating..."
                       : "Creating..."
-                    : editingResource
-                    ? "Update Resource"
-                    : "Create Resource"}
+                    : editingService
+                    ? "Update Service"
+                    : "Create Service"}
                 </Button>
               </div>
             </Form>
@@ -391,4 +427,4 @@ const ResourceManagement = () => {
   );
 };
 
-export default ResourceManagement;
+export default Services;
